@@ -1,7 +1,4 @@
-Write your reflection here.
-
-See reflection.md for what makes a good reflection — be specific, use the
-terminology from this assignment (grain, long vs. wide, vectorized .str methods,
-coerce, NaT, pd.to_datetime format, .dt, concat, ignore_index, group by, named
-aggregation, reset_index, pivot_table, fill_value, melt, lineage), and make it
-actionable.
+This assignment helped me learn how to use pandas to clean, organize, and summarize payroll data.
+I also learned how tools like groupby, pivot_table, and merge can turn raw data into useful reports. 
+Testing helped me understand these concepts better because when something failed, I could see exactly what part of my code was wrong and fix it. 
+Getting all 65 tests to pass showed me that testing is a good way to make sure each part of the program works correctly.

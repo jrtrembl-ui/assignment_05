@@ -53,7 +53,9 @@ def clean_employee_id(ids: pd.Series) -> pd.Series:
       and Step 2's merge will not match it to anyone on the roster.
     """
     # TODO: your code here
-    pass
+    cleaned = ids.str.strip().str.upper()
+    digits = cleaned.str[1:].str.zfill(3)
+    return "E" + digits
 
 
 def clean_number(values: pd.Series) -> pd.Series:
@@ -83,7 +85,13 @@ def clean_number(values: pd.Series) -> pd.Series:
       methods do the looping for you.
     """
     # TODO: your code here
-    pass
+    cleaned = (
+    values.str.replace("$", "", regex=False)
+    .str.replace(",", "", regex=False)
+    .str.strip()
+    )
+
+    return pd.to_numeric(cleaned, errors="coerce").fillna(0.0)
 
 
 def parse_pay_date(values: pd.Series) -> pd.Series:
@@ -111,7 +119,9 @@ def parse_pay_date(values: pd.Series) -> pd.Series:
       is how `"03/04/2026"` silently becomes April 3rd on someone's laptop.
     """
     # TODO: your code here
-    pass
+    us = pd.to_datetime(values, format="%m/%d/%Y", errors="coerce")
+    iso = pd.to_datetime(values, format="%Y-%m-%d", errors="coerce")
+    return us.fillna(iso)
 
 
 def combine_exports(exports: list) -> pd.DataFrame:
@@ -130,7 +140,7 @@ def combine_exports(exports: list) -> pd.DataFrame:
     - No `.copy()` needed — `concat` always builds a new frame.
     """
     # TODO: your code here
-    pass
+    return pd.concat(exports, ignore_index=True)
 
 
 def add_clean_columns(history: pd.DataFrame) -> pd.DataFrame:
@@ -158,7 +168,15 @@ def add_clean_columns(history: pd.DataFrame) -> pd.DataFrame:
       that is what the roster calls it, and Step 2 merges on it with `on=`.
     """
     # TODO: your code here
-    pass
+    out = history.copy()
+
+    out["employee_id"] = clean_employee_id(out["employeeid"])
+    out["pay_date"] = parse_pay_date(out["payrolldate"])
+    out["hours_worked"] = clean_number(out["hours"])
+    out["rate_usd"] = clean_number(out["rate"])
+    out["gross_pay"] = clean_number(out["total"])
+
+    return out
 
 
 def add_date_parts(history: pd.DataFrame) -> pd.DataFrame:
@@ -181,4 +199,9 @@ def add_date_parts(history: pd.DataFrame) -> pd.DataFrame:
     - `return out`. Requires `pay_date`, so it runs after `add_clean_columns`.
     """
     # TODO: your code here
-    pass
+    out = history.copy()
+
+    out["week_ending"] = out["pay_date"].dt.strftime("%Y-%m-%d")
+    out["month"] = out["pay_date"].dt.strftime("%Y-%m")
+
+    return out

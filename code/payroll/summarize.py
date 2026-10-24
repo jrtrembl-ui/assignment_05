@@ -37,7 +37,12 @@ def format_name(names: pd.Series) -> pd.Series:
     space between. Same `.str` toolkit as `clean_employee_id`; no `apply`.
     """
     # TODO: your code here
-    pass
+    parts = names.str.split(",")
+
+    last = parts.str[0].str.strip()
+    first = parts.str[1].str.strip()
+
+    return first + " " + last
 
 
 def add_roster(history: pd.DataFrame, employees: pd.DataFrame) -> pd.DataFrame:
@@ -57,7 +62,13 @@ def add_roster(history: pd.DataFrame, employees: pd.DataFrame) -> pd.DataFrame:
     `add_clean_columns` first — the raw `employeeid` does not match anything.
     """
     # TODO: your code here
-    pass
+    roster = employees.copy()
+
+    roster["display_name"] = format_name(roster["name"])
+
+    roster = roster[["employee_id", "display_name", "department"]]
+
+    return history.merge(roster, on="employee_id", how="left")
 
 
 def build_history(exports: list, employees: pd.DataFrame) -> pd.DataFrame:
@@ -69,7 +80,12 @@ def build_history(exports: list, employees: pd.DataFrame) -> pd.DataFrame:
     one row per row of every export.
     """
     # TODO: your code here
-    pass
+    history = combine_exports(exports)
+    history = add_clean_columns(history)
+    history = add_date_parts(history)
+    history = add_roster(history, employees)
+
+    return history
 
 
 def summarize_employees(history: pd.DataFrame) -> pd.DataFrame:
@@ -101,4 +117,19 @@ def summarize_employees(history: pd.DataFrame) -> pd.DataFrame:
     need to.
     """
     # TODO: your code here
-    pass
+    summary = (                                              # 1 indent
+        history.groupby(["employee_id", "display_name", "department"])  # 2 indents
+        .agg(                                                # 2 indents
+            weeks_paid=("week_ending", "count"),             # 3 indents
+            total_hours=("hours_worked", "sum"),             # 3 indents
+            total_pay=("gross_pay", "sum"),                  # 3 indents
+            avg_hours=("hours_worked", "mean"),              # 3 indents
+            overtime_weeks=("hours_worked", lambda x: (x > 40.0).sum()), # 3 indents
+        )                                                    # 2 indents
+        .reset_index()                                       # 2 indents
+    )                                                        # 1 indent
+
+    summary["total_pay"] = summary["total_pay"].round(2)      # 1 indent
+    summary["avg_hours"] = summary["avg_hours"].round(2)      # 1 indent
+
+    return summary.sort_values("employee_id").reset_index(drop=True)  # 1 indent
